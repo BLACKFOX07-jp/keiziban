@@ -2,7 +2,11 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- スマホ最適化 -->
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
 <title>Simple Board</title>
 
 <style>
@@ -14,10 +18,20 @@
   font-family:sans-serif;
 }
 
-body{
+html,body{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+
   background:#111;
   color:white;
-  height:100vh;
+}
+
+/* =====================
+  全体
+===================== */
+
+body{
   display:flex;
   flex-direction:column;
 }
@@ -27,13 +41,19 @@ body{
 ===================== */
 
 header{
-  padding:15px;
+  height:60px;
+
   background:#1c1c1c;
+
   border-bottom:1px solid #333;
 
   display:flex;
-  justify-content:space-between;
   align-items:center;
+  justify-content:space-between;
+
+  padding:0 15px;
+
+  flex-shrink:0;
 }
 
 header h2{
@@ -46,8 +66,12 @@ header h2{
 
 #chat{
   flex:1;
+
   overflow-y:auto;
+
   padding:12px;
+
+  -webkit-overflow-scrolling:touch;
 }
 
 /* =====================
@@ -56,101 +80,118 @@ header h2{
 
 .message{
   background:#1b1b1b;
+
   border:1px solid #2a2a2a;
-  border-radius:12px;
+
+  border-radius:14px;
 
   padding:12px;
+
   margin-bottom:10px;
 }
 
 .name{
   color:#4da6ff;
-  font-weight:bold;
-  margin-bottom:6px;
+
   font-size:14px;
+
+  font-weight:bold;
+
+  margin-bottom:6px;
 }
 
 .text{
-  line-height:1.6;
   font-size:16px;
 
+  line-height:1.6;
+
   white-space:pre-wrap;
+
   word-break:break-word;
 }
 
 /* =====================
-  下部入力欄
+  下部
 ===================== */
 
 .bottom{
-  display:flex;
-  gap:10px;
+
+  background:#1c1c1c;
+
+  border-top:1px solid #333;
 
   padding:10px;
 
-  background:#1c1c1c;
-  border-top:1px solid #333;
+  display:flex;
+
+  gap:10px;
+
+  flex-shrink:0;
 }
 
 input{
+
   flex:1;
+
+  background:#222;
+
+  border:1px solid #333;
+
+  color:white;
+
+  border-radius:12px;
 
   padding:14px;
 
-  background:#222;
-  border:1px solid #333;
-  border-radius:10px;
-
-  color:white;
   font-size:16px;
 
   outline:none;
 }
 
 button{
-  background:#4da6ff;
 
-  border:none;
+  background:#4da6ff;
 
   color:white;
 
-  padding:14px 18px;
+  border:none;
 
-  border-radius:10px;
+  border-radius:12px;
 
-  cursor:pointer;
+  padding:14px 16px;
 
   font-size:15px;
+
+  flex-shrink:0;
 }
 
 /* =====================
-  スマホ最適化
+  横画面禁止
 ===================== */
 
-@media(max-width:600px){
+@media (orientation: landscape){
 
-  header{
-    padding:12px;
-  }
+  body::before{
 
-  header h2{
-    font-size:16px;
-  }
+    content:"縦画面で使ってください";
 
-  .message{
-    padding:10px;
-  }
+    position:fixed;
 
-  .text{
-    font-size:15px;
-  }
+    inset:0;
 
-  input{
-    font-size:16px;
-  }
+    background:#111;
 
-  button{
-    padding:14px;
+    color:white;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:22px;
+
+    z-index:9999;
   }
 }
 
@@ -226,7 +267,8 @@ document.getElementById("changeName").onclick = () => {
 // WebSocket接続
 // =====================
 
-// 自分のPCのIPに変更
+// ↓↓↓超重要↓↓↓
+// ここを自分のPCのIPv4へ変更
 
 const socket = new WebSocket(
   "ws://192.168.10.108:3000"
@@ -243,7 +285,7 @@ const input = document.getElementById("input");
 const send = document.getElementById("send");
 
 // =====================
-// 接続確認
+// 接続成功
 // =====================
 
 socket.onopen = () => {
@@ -251,15 +293,22 @@ socket.onopen = () => {
   console.log("接続成功");
 };
 
-socket.onerror = (err) => {
+// =====================
+// 接続失敗
+// =====================
 
-  console.log("接続失敗", err);
+socket.onerror = () => {
 
-  alert("サーバー接続失敗");
+  alert(
+    "サーバーに接続できませんでした\n\n" +
+    "① PCとスマホを同じWi-Fiへ\n" +
+    "② server.js起動\n" +
+    "③ Windowsファイアウォール許可"
+  );
 };
 
 // =====================
-// メッセージ受信
+// 受信
 // =====================
 
 socket.onmessage = (event) => {
@@ -292,7 +341,7 @@ function sendMessage(){
   if (!text) return;
 
   socket.send(JSON.stringify({
-    type: "chat",
+    type:"chat",
     nickname,
     text
   }));
@@ -316,7 +365,7 @@ input.addEventListener("keydown", (e) => {
 // 表示
 // =====================
 
-function addMessage(data) {
+function addMessage(data){
 
   const div = document.createElement("div");
 
@@ -334,7 +383,6 @@ function addMessage(data) {
 
   chat.appendChild(div);
 
-  // 一番下へ
   chat.scrollTop = chat.scrollHeight;
 }
 
@@ -342,14 +390,14 @@ function addMessage(data) {
 // XSS対策
 // =====================
 
-function escapeHTML(str) {
+function escapeHTML(str){
 
   return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
 }
 
 </script>
