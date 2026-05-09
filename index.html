@@ -151,8 +151,10 @@ document.getElementById("changeName").onclick = () => {
 // WebSocket接続
 // =====================
 
+// ↓↓↓ここを自分のPCのIPに変える↓↓↓
+
 const socket = new WebSocket(
-  "ws://localhost:3000"
+  "ws://192.168.1.8:3000"
 );
 
 // =====================
